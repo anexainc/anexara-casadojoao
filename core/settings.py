@@ -127,10 +127,16 @@ STATICFILES_DIRS = [
 # Pasta onde o Django vai reunir todos os arquivos estáticos em produção para o Render ler
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-# Configuração extra para o Whitenoise compactar os arquivos estáticos com eficiência
+
+# Configuração para o Whitenoise gerenciar os arquivos estáticos e de mídia
 STORAGES = {
+    # Responsável pelos arquivos estáticos (CSS, JS, etc) - Compacta e gera cache
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+    # Responsável pelo armazenamento padrão do sistema (Uploads de mídia) - OBRIGATÓRIO DO DJANGO
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
     },
 }
 
