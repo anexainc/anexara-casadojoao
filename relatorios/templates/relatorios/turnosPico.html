@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>📈 Turnos de Pico (Almoço vs. Jantar) - Casa do João</title>
+    <style>
+        :root {
+            --primary-color: #79aec8;
+            --accent-color: #ab8635; /* O dourado padrão do admin */
+            --bg-dark: #417690;
+            --text-dark: #333333;
+            --bg-light: #f8f9fa;
+        }
+
+        body {
+            font-family: "Roboto", "Lucida Grande", "DejaVu Sans", "Bitstream Vera Sans", Verdana, Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+        }
+
+        .header {
+            background-color: var(--bg-dark);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 400;
+        }
+
+        /* Bloco de Filtros */
+        .filtros-container {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-left: 4px solid var(--accent-color);
+        }
+
+        .filtros-form {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .filtros-form label {
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        .filtros-form input[type="date"] {
+            padding: 6px 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-family: inherit;
+        }
+
+        .btn-filtrar {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+
+        .btn-filtrar:hover {
+            background-color: #8f6f2b;
+        }
+
+        .btn-limpar {
+            color: #666;
+            text-decoration: none;
+            font-size: 13px;
+        }
+
+        .btn-limpar:hover {
+            text-decoration: underline;
+        }
+
+        /* Cartões de Destaque */
+        .cards-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .card {
+            flex: 1;
+            background: white;
+            padding: 20px;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .card .value {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--accent-color);
+            margin-top: 5px;
+        }
+
+        .card .label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Tabela de Relatório */
+        .table-container {
+            background: white;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .table-title {
+            background: #ededed;
+            padding: 12px 20px;
+            margin: 0;
+            font-size: 16px;
+            color: #444;
+            border-bottom: 1px solid #ddd;
+            font-weight: bold;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f5f5f5;
+            color: #666;
+            padding: 12px 20px;
+            font-size: 13px;
+            text-transform: uppercase;
+            border-bottom: 2px solid #ddd;
+        }
+
+        td {
+            padding: 14px 20px;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+        }
+
+        tr:hover td {
+            background-color: #fdfbf7; /* Leve toque dourado no hover */
+        }
+
+        /* Posição do Ranking (Medalhas simbólicas para os mais cheios) */
+        .ranking-badge {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            line-height: 24px;
+            text-align: center;
+            border-radius: 50%;
+            background: #ddd;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        tr:nth-child(1) .ranking-badge { background: #ffd700; color: #554400; } /* Ouro */
+        tr:nth-child(2) .ranking-badge { background: #c0c0c0; color: #444444; } /* Prata */
+        tr:nth-child(3) .ranking-badge { background: #cd7f32; color: white; }   /* Bronze */
+
+        .sem-dados {
+            padding: 30px;
+            text-align: center;
+            color: #888;
+            font-style: italic;
+        }
+
+        .voltar-link {
+            display: inline-block;
+            margin-top: 25px;
+            color: var(--bg-dark);
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .voltar-link:hover {
+            color: var(--accent-color);
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>📈 Relatório de Turnos de Pico do Salão</h1>
+    </div>
+
+    <!-- Filtros por Período -->
+    <div class="filtros-container">
+        <form method="GET" class="filtros-form">
+            <label for="data_inicio">De:</label>
+            <input type="date" id="data_inicio" name="data_inicio" value="{{ data_inicio|default:'' }}">
+
+            <label for="data_fim">Até:</label>
+            <input type="date" id="data_fim" name="data_fim" value="{{ data_fim|default:'' }}">
+
+            <button type="submit" class="btn-filtrar">Filtrar Período</button>
+            
+            {% if data_inicio or data_fim %}
+                <a href="{% url 'turnos_pico' %}" class="btn-limpar">Limpar Filtros</a>
+            {% endif %}
+        </form>
+    </div>
+
+    <!-- Cartões de Resumo do Período -->
+    <div class="cards-row">
+        <div class="card">
+            <div class="label">Total de Reservas Atendidas</div>
+            <div class="value">{{ total_geral_reservas }}</div>
+        </div>
+        <div class="card">
+            <div class="label">Total de Clientes no Salão</div>
+            <div class="value">{{ total_geral_clientes }}</div>
+        </div>
+    </div>
+
+    <!-- Tabela de Classificação de Turnos -->
+    <div class="table-container">
+        <h2 class="table-title">Ranking de Movimentação por Turno/Tipo</h2>
+        
+        {% if movimento_por_turno %}
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 80px; text-align: center;">Posição</th>
+                        <th>Turno / Tipo de Reserva</th>
+                        <th style="text-align: center;">Qtd. Reservas</th>
+                        <th style="text-align: center;">Total de Pessoas Atendidas</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for turno in movimento_por_turno %}
+                        <tr>
+                            <td style="text-align: center;">
+                                <span class="ranking-badge">{{ forloop.counter }}</span>
+                            </td>
+                            <strong><td>{{ turno.nome_turnos|default:turno.nome_turno }}</td></strong>
+                            <td style="text-align: center; font-weight: bold;">{{ turno.total_reservas }}</td>
+                            <td style="text-align: center; color: var(--accent-color); font-weight: bold; font-size: 15px;">
+                                {{ turno.total_clientes }}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div class="sem-dados">
+                Nenhuma reserva confirmada foi encontrada para o período selecionado.
+            </div>
+        {% endif %}
+    </div>
+
+    <a href="/admin/" class="voltar-link">← Voltar para a Administração</a>
+
+</body>
+</html>

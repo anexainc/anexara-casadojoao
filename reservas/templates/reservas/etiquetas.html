@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Imprimir Etiquetas - AnexaRA</title>
+    <style>
+        /* Configuração da página inteira */
+        html, body {
+            margin: 0;
+            padding: 0;
+            background-color: #ffffff;
+            font-family: Arial, sans-serif;
+        }
+
+        /* Configuração do Grid para folhas de cartão Pimaco/Folhas Padrão (Geralmente 2 colunas e 5 linhas) */
+        .grid-etiquetas {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* 2 colunas por linha */
+            /* Ajustamos a largura máxima para casar com a folha A4 menos as margens padrão */
+            max-width: 190mm; 
+            margin: 10mm auto;
+            gap: 0; /* ZERADO: O próprio papel serrilhado já dita os limites */
+        }
+
+        /* Cada etiqueta ocupa o espaço exato do cartão de visita do papel microserrilhado */
+        .etiqueta {
+            background: white;
+            border: none; /* REMOVIDO: Nenhuma linha para não estragar o serrilhado */
+            padding: 15mm 10mm; /* Espaçamento interno para o texto não colar na borda do papel */
+            box-sizing: border-box;
+            height: 50.8mm; /* Altura padrão de cartões em folhas A4 (Aprox. 5cm) */
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .topo {
+            border-bottom: 2px solid #ffc107; /* Detalhe Mostarda da Casa do João */
+            padding-bottom: 5px;
+        }
+
+        .logo-restaurante {
+            font-size: 11px;
+            font-weight: bold;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .nome-cliente {
+            font-size: 22px;
+            font-weight: bold;
+            color: #000;
+            margin: 5px 0 0 0;
+        }
+
+        .detalhes {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: auto;
+        }
+
+        .info-box {
+            background: #f9f9f9;
+            border: 1px solid #eee;
+            padding: 5px 10px;
+            border-radius: 4px;
+            text-align: center;
+            width: 45%;
+        }
+
+        .info-box span {
+            display: block;
+            font-size: 9px;
+            color: #666;
+            text-transform: uppercase;
+        }
+
+        .info-box strong {
+            font-size: 15px;
+            color: #000;
+        }
+
+        /* FORÇA O NAVEGADOR A NÃO IMPRIMIR REBORDAS DA JANELA */
+        @media print {
+            body {
+                margin: 0;
+                padding: 0;
+            }
+            .grid-etiquetas {
+                margin: 0 auto;
+            }
+            .etiqueta {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="grid-etiquetas">
+        {% for reserva in reservas %}
+            {% if reserva.status == 'confirmado' %}
+                <div class="etiqueta">
+                    <div class="topo">
+                        <div class="logo-restaurante">Casa do João — Reserva</div>
+                        <div class="nome-cliente">{{ reserva.cliente.nome }}</div>
+                    </div>
+                    
+                    <div class="detalhes">
+                        <div class="info-box">
+                            <span>Mesa</span>
+                            <strong>{{ reserva.mesa.descricao }}</strong>
+                        </div>
+                        <div class="info-box">
+                            <span>Pessoas</span>
+                            <strong>{{ reserva.numero_pessoas }}</strong>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        {% empty %}
+            <p id="sem-reservas" style="grid-column: span 2; text-align: center; padding-top: 50px;">Nenhuma reserva selecionada.</p>
+        {% endfor %}
+    </div>
+
+    <script>
+        window.onload = function() {
+            // Verificação inteligente: Se não houver nenhuma etiqueta gerada na tela (porque nenhuma era confirmada)
+            // ele avisa o usuário e volta sem abrir a tela de impressão.
+            const possuiEtiquetas = document.querySelector('.etiqueta');
+            
+            if (!possuiEtiquetas) {
+                alert("Nenhuma das reservas selecionadas está com o status 'Confirmado'.");
+                window.history.back();
+                return;
+            }
+
+            // 1. Abre a tela de impressão do sistema operacional se houver cartões válidos
+            window.print();
+            
+            // 2. Cria um mecanismo que "escuta" quando a janela de impressão fecha
+            window.onafterprint = function() {
+                console.log("Impressão concluída ou cancelada. Retornando...");
+                window.history.back();
+            };
+
+            // Segurança para navegadores antigos
+            setTimeout(function() {
+                if (!document.hidden) {
+                    window.history.back();
+                }
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
+

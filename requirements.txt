@@ -1,0 +1,6 @@
+django>=5.0
+django-admin-interface
+django-colorfield
+djangorestframework
+django-cors-headers
+psycopg2-binary
